@@ -1,0 +1,9 @@
+build/
+dist/
+Output/
+.venv-build/
+__pycache__/
+*.spec
+.venv/
+.idea/
+.pytest_cache/
