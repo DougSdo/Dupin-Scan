@@ -9,7 +9,7 @@ pytest.importorskip("PySide6")
 from PySide6.QtCore import QSettings, Qt
 from PySide6.QtWidgets import QApplication, QMessageBox
 
-from vigil import core, forensics, gui, intel, state
+from dupin_scan import core, forensics, gui, intel, state
 
 
 @pytest.fixture(scope="session")
@@ -24,7 +24,7 @@ def win(app, tmp_path, monkeypatch):
     monkeypatch.setattr(core, "data_dir", lambda: tmp_path / "dados")
     for k in ("ABUSECH_AUTH_KEY", "VT_API_KEY"):
         monkeypatch.delenv(k, raising=False)
-    QSettings("Vigil", "Vigil").clear()
+    QSettings("Dupin-Scan", "Dupin-Scan").clear()
     w = gui.MainWindow()
     yield w
     w.close()
@@ -373,3 +373,55 @@ def test_fechar_espera_as_tarefas_em_segundo_plano(win, app, monkeypatch):
     gui.run_async(win.sett, lambda: (time.sleep(0.3), fim.append(1)), lambda r, e: None)
     win.close()
     assert fim == [1]  # o fechamento esperou a tarefa terminar
+
+
+# ------------------------------------------------------------ migração das configurações do nome antigo (Vigil)
+@pytest.fixture
+def antigo_e_novo(app, tmp_path, monkeypatch):
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+    old, new = QSettings("Vigil", "Vigil"), QSettings("Dupin-Scan", "Dupin-Scan")
+    old.clear()
+    new.clear()
+    yield old, new
+    old.clear()
+    new.clear()
+
+
+def test_migra_as_configuracoes_do_nome_antigo(antigo_e_novo):
+    old, new = antigo_e_novo
+    old.setValue("hashes", str(core.legacy_data_dir() / "intel" / "hashes.txt"))
+    old.setValue("yara", "D:\\minhas\\regras")
+    old.setValue("vt_key", "chave-do-usuario")
+    old.sync()
+    assert gui.migrate_legacy_settings(new) == 3
+    assert new.value("hashes") == str(core.data_dir() / "intel" / "hashes.txt")  # reescrito para a pasta nova
+    assert new.value("yara") == "D:\\minhas\\regras" and new.value("vt_key") == "chave-do-usuario"
+    assert old.value("vt_key") == "chave-do-usuario"  # a chave antiga não é apagada
+
+
+def test_nao_sobrescreve_configuracoes_novas(antigo_e_novo):
+    old, new = antigo_e_novo
+    old.setValue("yara", "antigo")
+    old.sync()
+    new.setValue("yara", "novo")
+    new.sync()
+    assert gui.migrate_legacy_settings(new) == 0 and new.value("yara") == "novo"
+
+
+def test_sem_configuracoes_antigas_nao_faz_nada(antigo_e_novo):
+    _, new = antigo_e_novo
+    assert gui.migrate_legacy_settings(new) == 0 and new.allKeys() == []
+
+
+def test_janela_ja_nasce_com_as_configuracoes_migradas(antigo_e_novo, monkeypatch, tmp_path):
+    old, new = antigo_e_novo
+    old.setValue("yara", "D:\\regras")
+    old.sync()
+    monkeypatch.setattr(core, "data_dir", lambda: tmp_path / "dados")
+    w = gui.MainWindow()
+    try:
+        assert w.sett.yara.text() == "D:\\regras"
+    finally:
+        w.close()
+        w.deleteLater()

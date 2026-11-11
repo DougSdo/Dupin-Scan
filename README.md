@@ -1,4 +1,4 @@
-# Vigil
+# Dupin-Scan
 
 Ferramenta de **triagem** de ameaças para Windows e Linux, com interface gráfica e linha de comando:
 varredura de arquivos (hash, YARA, heurísticas, conteúdo de scripts), persistência (e o executável que ela
@@ -9,7 +9,7 @@ os resultados saem em JSON, HTML, CSV e linha do tempo; e as detecções podem s
 **Sigma** e **YARA**.
 
 > Não substitui antivírus/EDR. Achados são indícios: confirme antes de agir.
-> Leia [O que o Vigil não detecta](#o-que-o-vigil-não-detecta) antes de confiar num resultado "limpo".
+> Leia [O que o Dupin-Scan não detecta](#o-que-o-dupin-scan-não-detecta) antes de confiar num resultado "limpo".
 
 ## Executar a partir do código
 Windows: dê duplo clique em `run_windows.bat` (cria uma venv local e abre o app).
@@ -17,10 +17,10 @@ Windows: dê duplo clique em `run_windows.bat` (cria uma venv local e abre o app
 Qualquer sistema:
 ```
 pip install -r requirements.txt
-python run_vigil.py        # interface (ou: python -m vigil)
-python -m vigil scan ...   # linha de comando (ver abaixo)
+python run_dupin_scan.py        # interface (ou: python -m dupin_scan)
+python -m dupin_scan scan ...   # linha de comando (ver abaixo)
 ```
-`python -m vigil arquivo.exe pasta\` abre a interface já apontada para esses alvos.
+`python -m dupin_scan arquivo.exe pasta\` abre a interface já apontada para esses alvos.
 
 ## Usar a interface
 - **Varredura:** escolha o que verificar (arquivos, persistência, processos, artefatos forenses) e os alvos
@@ -32,30 +32,30 @@ python -m vigil scan ...   # linha de comando (ver abaixo)
   (JSON, HTML, CSV ou linha do tempo).
 - **Configurações:** fontes de detecção, inteligência de ameaças (opcional), regras Sigma/YARA e a lista de
   itens ignorados (dá para desfazer).
-- O instalador do Windows pode adicionar **"Varrer com o Vigil"** ao menu de contexto de arquivos e pastas.
+- O instalador do Windows pode adicionar **"Varrer com o Dupin-Scan"** ao menu de contexto de arquivos e pastas.
 
 ## Linha de comando
 Própria para agendar e automatizar. Funciona sem ambiente gráfico (a interface nem é importada).
 ```
-python -m vigil scan --out relatorio.json --fail-on ALTO         # código de saída 2 se houver achado ALTO
-python -m vigil scan --modules files,forensics --targets C:\Users\eu\Downloads --out rel.html
-python -m vigil scan --track --use-intel --out rel.json          # ignorados + "novo" + hashes/regras baixados
-python -m vigil analyze Security.evtx auth.log.1.gz --out artefatos.html
-python -m vigil timeline relatorio.json --out linha-do-tempo.csv
-python -m vigil export-rules --out regras
-python -m vigil ignored list | remove CHAVE | add CHAVE --report relatorio.json
-python -m vigil intel status | update-hashes | update-yara | vt SHA256
+python -m dupin_scan scan --out relatorio.json --fail-on ALTO         # código de saída 2 se houver achado ALTO
+python -m dupin_scan scan --modules files,forensics --targets C:\Users\eu\Downloads --out rel.html
+python -m dupin_scan scan --track --use-intel --out rel.json          # ignorados + "novo" + hashes/regras baixados
+python -m dupin_scan analyze Security.evtx auth.log.1.gz --out artefatos.html
+python -m dupin_scan timeline relatorio.json --out linha-do-tempo.csv
+python -m dupin_scan export-rules --out regras
+python -m dupin_scan ignored list | remove CHAVE | add CHAVE --report relatorio.json
+python -m dupin_scan intel status | update-hashes | update-yara | vt SHA256
 ```
 - Códigos de saída: `0` sem achados no limite pedido, `1` erro, `2` achados em `--fail-on` ou acima.
 - `scan` **nunca usa a rede**. Só `intel ...` acessa a internet, e por comando explícito.
 - Chaves de API **só por variável de ambiente** (`ABUSECH_AUTH_KEY`, `VT_API_KEY`): argumentos aparecem na lista de
   processos, então a CLI nem os aceita.
 - `--out` escolhe o formato pelo sufixo: `.json`, `.html`, `.csv` (achados) ou `.timeline.csv`; `-` imprime JSON.
-- Instalada pelo instalador, a CLI fica em `vigil-cli.exe` (opção de adicionar ao PATH).
+- Instalada pelo instalador, a CLI fica em `dupin-scan-cli.exe` (opção de adicionar ao PATH).
 
 ## Mapeamento MITRE ATT&CK
 Cada achado traz as técnicas associadas (coluna **ATT&CK** nos resultados e campo `attack` no JSON exportado).
-O catálogo, com nomes e táticas conferidos em attack.mitre.org, está em [vigil/attack.py](vigil/attack.py).
+O catálogo, com nomes e táticas conferidos em attack.mitre.org, está em [dupin_scan/attack.py](dupin_scan/attack.py).
 
 | Detecção | Técnica |
 |---|---|
@@ -101,7 +101,7 @@ O catálogo, com nomes e táticas conferidos em attack.mitre.org, está em [vigi
 | *Forense:* Prefetch, Amcache ou Shimcache de `PsExec` | T1569.002 Service Execution |
 | *Forense:* Prefetch, Amcache ou Shimcache de `LaZagne` / `Rubeus` | T1555 Credentials from Password Stores / T1558 Steal or Forge Kerberos Tickets |
 
-A T1070.001 (apagar logs do Windows) foi movida no ATT&CK atual para **T1685.005**; o Vigil usa o ID novo.
+A T1070.001 (apagar logs do Windows) foi movida no ATT&CK atual para **T1685.005**; o Dupin-Scan usa o ID novo.
 A tática *Defense Evasion* chama-se hoje *Stealth*, e o catálogo segue os nomes do site.
 
 Sem técnica associada (são indicadores, não comportamentos): hash conhecido, regra YARA do usuário,
@@ -109,7 +109,7 @@ pasta comumente abusada e conexão externa. Para tarefas agendadas e cron usamos
 (T1053.005 / T1053.003), não a T1053 genérica.
 
 ## Persistência e processos
-**Segue o executável.** Para cada entrada de persistência (chave Run, tarefa, serviço, `ExecStart`, cron...), o Vigil
+**Segue o executável.** Para cada entrada de persistência (chave Run, tarefa, serviço, `ExecStart`, cron...), o Dupin-Scan
 extrai o caminho do executável e o analisa como qualquer arquivo (hash, YARA, heurísticas, confiança). Uma tarefa de
 aparência inofensiva que chama um binário suspeito agora gera achado; antes só o texto do comando era julgado.
 
@@ -125,7 +125,7 @@ aparência inofensiva que chama um binário suspeito agora gera achado; antes s�
   as mesmas regras de comando suspeito são aplicadas ao texto do arquivo.
 
 ## Confiança no binário (menos falsos positivos)
-Para os achados que envolvem um binário, o Vigil consulta se ele é **confiável** e abate só as heurísticas fracas:
+Para os achados que envolvem um binário, o Dupin-Scan consulta se ele é **confiável** e abate só as heurísticas fracas:
 - **Windows:** assinatura digital válida (`Get-AuthenticodeSignature`, que entende assinaturas embutidas e de catálogo
   do Windows). O fabricante e "binário do Windows" aparecem nos detalhes.
 - **Linux:** o arquivo pertence a um pacote (`dpkg -S` / `rpm -qf`) e, no dpkg, o MD5 bate com o `md5sums` do pacote.
@@ -138,8 +138,8 @@ Para os achados que envolvem um binário, o Vigil consulta se ele é **confiáve
 
 ## Lista de ignorados e "novo desde a última vez"
 - **Ignorar** marca um achado como esperado. A chave inclui o hash do arquivo: se ele mudar, volta a aparecer.
-  Desfaz-se em Configurações ou com `vigil ignored remove`.
-- **Baseline:** o Vigil lembra o que já viu (`state.json` na pasta de dados). Na segunda varredura em diante cada
+  Desfaz-se em Configurações ou com `dupin-scan ignored remove`.
+- **Baseline:** o Dupin-Scan lembra o que já viu (`state.json` na pasta de dados). Na segunda varredura em diante cada
   achado fica marcado como **novo** ou não. Na primeira varredura de cada tipo nada é marcado, para não pintar tudo igual.
 - A varredura **cancelada** não grava nada. A API (`core.run_scan`) não tem efeitos colaterais por padrão
   (`track=False`); a interface e `--track` ligam.
@@ -165,7 +165,7 @@ não altera nada. Achados aparecem como tipo *Artefato*, com **Fonte** e **Quand
 | Linux | `.bash_history`, `.zsh_history`, `.sh_history`, `fish_history` (todos os usuários, se root) | comandos suspeitos, limpeza de histórico, histórico apontando para `/dev/null` |
 
 **Artefatos exportados (forense offline)** — para analisar o que foi coletado de outra máquina
-(`vigil analyze ...` ou *Analisar artefato exportado…*):
+(`dupin-scan analyze ...` ou *Analisar artefato exportado…*):
 
 | Arquivo | Como | Dependência opcional |
 |---|---|---|
@@ -175,17 +175,17 @@ não altera nada. Achados aparecem como tipo *Artefato*, com **Fonte** e **Quand
 | `auth.log*`, históricos, `ConsoleHost_history.txt`, `.pf` | mesmas regras do módulo ao vivo | — |
 
 Para coletar esses arquivos numa máquina Windows, rode `tools\coletar_artefatos.ps1` num PowerShell **como
-administrador**: ele só lê o sistema e grava numa pasta nova (`vigil_coleta`), sem senhas, navegador nem documentos
+administrador**: ele só lê o sistema e grava numa pasta nova (`dupin_scan_coleta`), sem senhas, navegador nem documentos
 (o resultado revela quais programas foram executados e logons: trate como dado sensível e apague depois).
 
-Requisitos de privilégio: o log **Security** e o Prefetch só são legíveis como administrador; sem isso o Vigil
+Requisitos de privilégio: o log **Security** e o Prefetch só são legíveis como administrador; sem isso o Dupin-Scan
 segue com o resto e avisa nas notas do relatório o que ficou de fora. Os logs *System* e
 *PowerShell/Operational* costumam ser legíveis sem elevação. O log de eventos do PowerShell (4104) só existe se o
 *Script Block Logging* estiver ligado, e a 4698 só se a auditoria de tarefas estiver ativa.
 
 ## Inteligência de ameaças (opcional, usa a internet)
-O Vigil funciona **100% offline**. Estas funções só acessam a rede por ação explícita e confirmada
-(botões em Configurações, ou `vigil intel ...`):
+O Dupin-Scan funciona **100% offline**. Estas funções só acessam a rede por ação explícita e confirmada
+(botões em Configurações, ou `dupin-scan intel ...`):
 - **Lista de hashes (MalwareBazaar):** exige uma **Auth-Key gratuita** da abuse.ch (https://auth.abuse.ch/). O endpoint
   público antigo (`bazaar.abuse.ch/export/...`) responde *410 Gone*. A lista baixada é ativada automaticamente.
 - **Regras YARA (signature-base):** baixa o repositório, extrai só `.yar/.yara` (com proteção contra zip-slip e zip
@@ -198,19 +198,19 @@ O Vigil funciona **100% offline**. Estas funções só acessam a rede por ação
 ## Exportar regras (Sigma e YARA)
 As regras saem das mesmas tabelas que o scanner usa, então não divergem do app:
 ```
-python -m vigil export-rules --out vigil-rules       # sigma/*.yml + vigil.yar
-python -m vigil export-rules --format sigma
+python -m dupin_scan export-rules --out dupin-scan-rules       # sigma/*.yml + dupin-scan.yar
+python -m dupin_scan export-rules --format sigma
 ```
 Ou em **Configurações → Exportar regras de detecção**.
 
 - **Sigma** (`process_creation`, `registry_set`, `file_event`): linhas de comando suspeitas, chave Run, pasta
   Startup, `schtasks /create` apontando para pasta suspeita e escrita em `/etc/ld.so.preload`. Cada regra leva
   as tags `attack.*`. As regexes usam `|re|i`.
-- **YARA** (`vigil.yar`): disfarce de documento, dupla extensão e entropia alta (usam a variável externa
-  `filename`, que o Vigil já declara ao carregar regras) e uma regra por padrão de comando, para varrer scripts.
+- **YARA** (`dupin-scan.yar`): disfarce de documento, dupla extensão e entropia alta (usam a variável externa
+  `filename`, que o Dupin-Scan já declara ao carregar regras) e uma regra por padrão de comando, para varrer scripts.
 - Só viram regra as detecções com técnica ATT&CK; "pasta suspeita" sozinha é ruído demais para caça de ameaças.
 - São **pontos de partida**: ajuste e meça falsos positivos no seu ambiente antes de usar em produção. Não
-  carregue as regras exportadas no próprio Vigil junto com as heurísticas se não quiser achados duplicados.
+  carregue as regras exportadas no próprio Dupin-Scan junto com as heurísticas se não quiser achados duplicados.
 
 ## Laboratório de testes
 `lab/run_lab.py` cria artefatos **inofensivos** que disparam cada detecção e confere o achado e a técnica ATT&CK:
@@ -236,7 +236,7 @@ python lab/run_lab.py --registry    # Windows: também uma chave Run (HKCU) e um
 pip install -r requirements-dev.txt
 python -m pytest
 ```
-`python-evtx` e `regipy` são opcionais; sem eles os testes correspondentes são ignorados e o Vigil avisa
+`python-evtx` e `regipy` são opcionais; sem eles os testes correspondentes são ignorados e o Dupin-Scan avisa
 "instale X" quando a função é pedida.
 
 ## Gerar o instalador
@@ -250,20 +250,20 @@ Saídas, todas dentro do projeto:
 
 | Arquivo | O que é |
 |---|---|
-| `Output\Vigil-Portatil.exe` | **interface em um único arquivo**: não instala nada, serve para pendrive ou para enviar a alguém |
-| `Output\vigil-cli-portatil.exe` | linha de comando em um único arquivo (sem o Qt) |
-| `Output\Vigil-Setup-1.0.0.exe` | **instalador** (atalhos, menu de contexto, PATH, desinstalador) |
+| `Output\Dupin-Scan-Portatil.exe` | **interface em um único arquivo**: não instala nada, serve para pendrive ou para enviar a alguém |
+| `Output\dupin-scan-cli-portatil.exe` | linha de comando em um único arquivo (sem o Qt) |
+| `Output\Dupin-Scan-Setup-1.0.0.exe` | **instalador** (atalhos, menu de contexto, PATH, desinstalador) |
 | `Output\SHA256SUMS.txt` | checksums dos três |
-| `dist\Vigil\Vigil.exe` + `_internal\` | a mesma interface em **pasta** (abre mais rápido; não separe o `.exe` da pasta) |
-| `dist\vigil-cli\` | a CLI em pasta (é o que o instalador embute) |
+| `dist\Dupin-Scan\Dupin-Scan.exe` + `_internal\` | a mesma interface em **pasta** (abre mais rápido; não separe o `.exe` da pasta) |
+| `dist\dupin-scan-cli\` | a CLI em pasta (é o que o instalador embute) |
 
 O `.exe` único se descompacta em `%TEMP%` a cada execução (abre em cerca de 2 a 3 s; fechando normalmente ele limpa o
 que criou). Encerrá-lo à força deixa uma pasta `_MEI*` no `%TEMP%`, que pode ser apagada à mão. Executáveis únicos
 costumam atrair mais falsos positivos de antivírus do que os de pasta, e ainda mais sem assinatura de código.
 
-O instalador oferece o menu de contexto **"Varrer com o Vigil"** e a CLI no PATH (ambos removidos ao desinstalar).
+O instalador oferece o menu de contexto **"Varrer com o Dupin-Scan"** e a CLI no PATH (ambos removidos ao desinstalar).
 
-**Assinatura de código (opcional):** defina `VIGIL_SIGN_CERT_NAME` com o nome de um certificado já instalado e deixe o
+**Assinatura de código (opcional):** defina `DUPIN_SCAN_SIGN_CERT_NAME` com o nome de um certificado já instalado e deixe o
 `signtool` no PATH; os executáveis e o instalador são assinados. Sem isso nada é assinado e o SmartScreen vai avisar.
 A senha de um `.pfx` não é aceita pelo script de propósito (apareceria na lista de processos).
 
@@ -274,26 +274,26 @@ Sem Windows à mão ou sem querer instalar nada: suba o projeto no GitHub e rode
 Requisitos: Debian/Ubuntu ou derivados, python3-venv.
 ```
 bash packaging/build_linux.sh
-sudo apt install ./build/vigil_1.0.0_amd64.deb
+sudo apt install ./build/dupin-scan_1.0.0_amd64.deb
 ```
-Instala em `/opt/vigil`, cria os comandos `vigil` e `vigil-cli`, entrada no menu e o lançador `vigil-root`.
+Instala em `/opt/dupin-scan`, cria os comandos `dupin-scan` e `dupin-scan-cli`, entrada no menu e o lançador `dupin-scan-root`.
 
 ## Privilégios
 Sem Administrador/root, processos de outros usuários e pastas do sistema ficam ilegíveis.
 - Windows: botão direito → Executar como administrador (ou adicione `--uac-admin` no PyInstaller).
-- Linux: `vigil-root` (pkexec) ou `sudo -E vigil`.
+- Linux: `dupin-scan-root` (pkexec) ou `sudo -E dupin-scan`.
 
 ## Fontes de detecção
 Em **Configurações**: lista de SHA-256 (aceita CSV) e pasta com regras YARA, escolhidas por você ou baixadas pela
 [inteligência de ameaças](#inteligência-de-ameaças-opcional-usa-a-internet).
-O Vigil **não traz** base de assinaturas: sem essas duas fontes, só as heurísticas atuam.
+O Dupin-Scan **não traz** base de assinaturas: sem essas duas fontes, só as heurísticas atuam.
 
-## O que o Vigil não detecta
+## O que o Dupin-Scan não detecta
 Conhecer o limite da ferramenta faz parte de usá-la bem. Um resultado sem achados **não** significa máquina limpa.
 
 **Natureza da ferramenta**
 - É uma foto do momento, não monitoramento: nada em tempo real, nada sobre o que já aconteceu e foi apagado.
-- As heurísticas são óbvias por construção. Quem conhece o Vigil as contorna: sair das pastas listadas,
+- As heurísticas são óbvias por construção. Quem conhece o Dupin-Scan as contorna: sair das pastas listadas,
   ofuscar o comando, renomear, assinar o binário. Ela serve para triagem inicial e estudo, não contra um adversário dedicado.
 - Há falsos positivos esperados (AppData, `/tmp`, AppImage/snap, instaladores) e falsos negativos.
 
@@ -342,13 +342,13 @@ Conhecer o limite da ferramenta faz parte de usá-la bem. Um resultado sem achad
   Trate o resultado como não validado até testar com os seus artefatos. O Shimcache dá a data de modificação do
   arquivo, **não** a de execução.
 - **`.evtx` exportado:** o `python-evtx` falhou em cerca de 5% dos registros de um log *System* real (eventos de hardware/WHEA,
-  com erro de decodificação interno; o Vigil conta e avisa) e processa cerca de 150 a 180 eventos por segundo (21 MB levam
+  com erro de decodificação interno; o Dupin-Scan conta e avisa) e processa cerca de 150 a 180 eventos por segundo (21 MB levam
   uns 2,5 min): prefira `--days` ou exporte já filtrado. Eventos de segurança reais (1102, 4624, 4625, 4698, 4720) nunca foram
   testados com esse leitor. Sem `--days`, a janela é infinita para arquivos exportados.
 - Logs de eventos ao vivo: não cobrem criação de processo (4688), Sysmon, WMI-Activity, RDP/WinRM detalhados nem
-  Kerberos/NTLM. Há limite de eventos por consulta (o Vigil avisa quando é atingido) e a janela padrão é de 30 dias.
+  Kerberos/NTLM. Há limite de eventos por consulta (o Dupin-Scan avisa quando é atingido) e a janela padrão é de 30 dias.
 - Sem Administrador, o log **Security** (logons, contas, grupos, tarefas, limpeza de log) e o Prefetch ficam de fora.
-  O Vigil só avisa nas notas: um relatório sem achados forenses pode significar "não consegui ler".
+  O Dupin-Scan só avisa nas notas: um relatório sem achados forenses pode significar "não consegui ler".
 - Se o *Script Block Logging* ou a auditoria de tarefas/contas estiverem desligados, os eventos correspondentes
   simplesmente não existem: ausência de evento não é ausência de atividade.
 - **Linux:** o journald e o `auth.log` foram testados só com `subprocess` e arquivos simulados (não havia Linux real).
@@ -360,7 +360,7 @@ Conhecer o limite da ferramenta faz parte de usá-la bem. Um resultado sem achad
 - Não cobre MFT/USN, SRUM, artefatos de navegador, memória nem imagens de disco.
 
 **Estado entre varreduras**
-- "Novo" significa "nunca visto **por este Vigil neste computador**". Mudar de máquina, apagar `state.json` ou a pasta de
+- "Novo" significa "nunca visto **por este Dupin-Scan neste computador**". Mudar de máquina, apagar `state.json` ou a pasta de
   dados zera o histórico. A chave de arquivos inclui caminho e hash: renomear ou mover um arquivo o torna "novo".
 - Ignorar é por achado exato, não por regra: um mesmo programa em outro caminho volta a aparecer.
 
@@ -382,47 +382,55 @@ Conhecer o limite da ferramenta faz parte de usá-la bem. Um resultado sem achad
 **Regras exportadas**
 - Sigma só vale onde há telemetria correspondente (ex.: Sysmon/auditoria de registro e processo).
 - As regexes são as mesmas do scanner, escritas em Python: o motor do seu SIEM pode divergir em casos extremos.
-  O laboratório valida o comportamento do Vigil, não o das regras em outros motores.
+  O laboratório valida o comportamento do Dupin-Scan, não o das regras em outros motores.
 
 **Empacotamento**
 - **Construídos e testados** (PyInstaller, Windows 11): o executável da **interface** (119 MB; abre, responde, recebe um
   caminho como argumento e roteia os subcomandos para a CLI mesmo sem console) e o executável da **CLI** (24 MB, sem Qt).
   Isso pegou um defeito real (a CLI quebrava sem `stdout`/`stderr`), já corrigido e coberto por teste.
-- **Compilado, mas nunca executado:** o instalador do Inno Setup. O `vigil.iss` (tarefas, menu de contexto, PATH e a
-  seção `[Code]`) compila sem avisos com o Inno Setup 6.7.3 e gera um `Vigil-Setup-1.0.0.exe` de 43 MB, não assinado.
+- **Compilado, mas nunca executado:** o instalador do Inno Setup. O `dupin-scan.iss` (tarefas, menu de contexto, PATH e a
+  seção `[Code]`) compila sem avisos com o Inno Setup 6.7.3 e gera um `Dupin-Scan-Setup-1.0.0.exe` de 43 MB, não assinado.
   O que ele faz ao ser **executado** (criar as chaves do menu de contexto, mexer no PATH, desinstalar e limpar tudo)
   não foi testado: exige administrador, e um erro no PATH do sistema é difícil de desfazer. Teste numa VM primeiro.
 - **Não construídos nem testados:** a assinatura de código (`signtool` e certificado não estão disponíveis aqui) e o `.deb`
-  (`packaging/build_linux.sh` foi atualizado para a CLI e o `vigil-cli`, mas nunca foi executado: exige Debian/Ubuntu).
+  (`packaging/build_linux.sh` foi atualizado para a CLI e o `dupin-scan-cli`, mas nunca foi executado: exige Debian/Ubuntu).
 - A interface só foi vista renderizada em modo offscreen (com as fontes do Windows), nunca usada por uma pessoa numa
   sessão real, e os executáveis congelados não foram exercitados clicando na interface.
 
 ## Estrutura
 ```
-vigil/core.py          núcleo (varredura de arquivos, contexto, quarentena) - sem dependência de interface
-vigil/persist.py       persistência (e o binário que ela aponta) e processos
-vigil/forensics.py     artefatos forenses: logs ao vivo, históricos, Prefetch e artefatos exportados
+dupin_scan/core.py          núcleo (varredura de arquivos, contexto, quarentena) - sem dependência de interface
+dupin_scan/persist.py       persistência (e o binário que ela aponta) e processos
+dupin_scan/forensics.py     artefatos forenses: logs ao vivo, históricos, Prefetch e artefatos exportados
 tools/                 coletar_artefatos.ps1: copia Prefetch, Amcache, SYSTEM e logs de eventos (roda como administrador)
-vigil/trust.py         confiança no binário (assinatura digital / pacote)
-vigil/state.py         lista de ignorados e histórico de achados vistos
-vigil/timeline.py      linha do tempo e CSV (com proteção contra injeção de fórmulas)
-vigil/report.py        relatórios JSON, HTML e CSV
-vigil/intel.py         inteligência de ameaças opcional (rede só por ação explícita)
-vigil/attack.py        catálogo MITRE ATT&CK
-vigil/export_rules.py  exportação Sigma/YARA
-vigil/cli.py           linha de comando
-vigil/launcher.py      ponto de entrada: subcomandos -> CLI; o resto -> interface
-vigil/gui.py           interface PySide6
+dupin_scan/trust.py         confiança no binário (assinatura digital / pacote)
+dupin_scan/state.py         lista de ignorados e histórico de achados vistos
+dupin_scan/timeline.py      linha do tempo e CSV (com proteção contra injeção de fórmulas)
+dupin_scan/report.py        relatórios JSON, HTML e CSV
+dupin_scan/intel.py         inteligência de ameaças opcional (rede só por ação explícita)
+dupin_scan/attack.py        catálogo MITRE ATT&CK
+dupin_scan/export_rules.py  exportação Sigma/YARA
+dupin_scan/cli.py           linha de comando
+dupin_scan/launcher.py      ponto de entrada: subcomandos -> CLI; o resto -> interface
+dupin_scan/gui.py           interface PySide6
 lab/run_lab.py         laboratório de testes com artefatos inofensivos
 tests/                 testes (pytest)
 packaging/             scripts de build, Inno Setup, gerador de ícones
 ```
 
 ## Dados do usuário
-Pasta de dados: `%LOCALAPPDATA%\Vigil` (Windows) / `~/.local/share/vigil` (Linux).
+Pasta de dados: `%LOCALAPPDATA%\Dupin-Scan` (Windows) / `~/.local/share/dupin-scan` (Linux).
 - `quarantine/` quarentena e índice
 - `state.json` lista de ignorados e histórico de achados vistos
 - `intel/` hashes e regras baixados (`hashes.txt`, `yara/`, `meta.json`)
 
 Se o `index.json` ou o `state.json` estiverem corrompidos, o arquivo é preservado como `*.corrompido-<data>.json`
 em vez de sobrescrito.
+
+**Antes era "Vigil".** Este programa se chamou Vigil nas primeiras versões. Na primeira execução com o nome novo:
+- a pasta de dados antiga (`%LOCALAPPDATA%\Vigil` / `~/.local/share/vigil`) é **renomeada** para a nova, com a
+  quarentena, o histórico e as listas baixadas dentro. Se não for possível mover (arquivo em uso, sem permissão), a
+  pasta antiga continua sendo usada e nada se perde;
+- as configurações da interface (caminhos de hashes/YARA, chaves) são **copiadas** da chave antiga do registro
+  (`HKCU\Software\Vigil`), reescrevendo os caminhos que apontavam para a pasta antiga. A chave antiga **não** é
+  apagada: pode removê-la à mão se quiser.

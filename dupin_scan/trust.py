@@ -1,4 +1,4 @@
-"""Vigil - confiança no binário: assinatura digital (Windows) e propriedade por pacote (Linux).
+"""Dupin-Scan - confiança no binário: assinatura digital (Windows) e propriedade por pacote (Linux).
 
 Serve para REDUZIR falsos positivos: um binário com assinatura válida (ou entregue e não modificado por um pacote
 da distribuição) perde pontos de heurísticas fracas. Não é atestado de segurança: malware também é assinado, por
@@ -16,7 +16,7 @@ import subprocess
 _cache = {}
 
 _PS = ("[Console]::OutputEncoding=[Text.Encoding]::UTF8;"
-       "$s=Get-AuthenticodeSignature -LiteralPath $env:VIGIL_TRUST_PATH;"
+       "$s=Get-AuthenticodeSignature -LiteralPath $env:DUPIN_SCAN_TRUST_PATH;"
        "[pscustomobject]@{Status=[string]$s.Status;"
        "Subject=$(if($s.SignerCertificate){$s.SignerCertificate.Subject});"
        "OS=[bool]$s.IsOSBinary}|ConvertTo-Json -Compress")
@@ -37,7 +37,7 @@ def _publisher(subject):
 def windows_signature(path, timeout=30):
     """{"signed": bool, "status": str, "publisher": str, "os_binary": bool} ou None se não deu para consultar.
     Usa Get-AuthenticodeSignature, que entende assinaturas embutidas E de catálogo (arquivos do Windows)."""
-    env = dict(os.environ, VIGIL_TRUST_PATH=str(path))
+    env = dict(os.environ, DUPIN_SCAN_TRUST_PATH=str(path))
     try:
         res = subprocess.run([_ps_exe(), "-NoProfile", "-NonInteractive", "-Command", _PS], capture_output=True,
                              env=env, timeout=timeout, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))

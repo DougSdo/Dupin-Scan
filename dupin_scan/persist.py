@@ -1,4 +1,4 @@
-"""Vigil - persistência e processos (sem dependência de interface).
+"""Dupin-Scan - persistência e processos (sem dependência de interface).
 
 Novidades em relação à primeira versão:
   - Segue o executável que cada entrada de persistência aponta (chave Run, tarefa, serviço, cron, ExecStart...) e o

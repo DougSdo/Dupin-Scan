@@ -1,4 +1,4 @@
-"""Vigil - núcleo de varredura (sem dependência de interface)."""
+"""Dupin-Scan - núcleo de varredura (sem dependência de interface)."""
 import csv
 import hashlib
 import ipaddress
@@ -42,7 +42,7 @@ SUSPECT_DIRS = {
 PRUNE = {"linux": {"/proc", "/sys", "/dev", "/run", "/snap"}, "windows": set()}
 MAX_SIZE = 100 * 1024 * 1024
 ENTROPY_LIMIT = 7.2
-# Variáveis externas que as regras YARA (inclusive as exportadas pelo Vigil) podem usar
+# Variáveis externas que as regras YARA (inclusive as exportadas pelo Dupin-Scan) podem usar
 # (inclui as usadas por repositórios públicos, como signature-base: extension, filetype, owner)
 YARA_EXTERNALS = {"filename": "", "filepath": "", "extension": "", "filetype": "", "owner": ""}
 
@@ -458,11 +458,36 @@ def load_targets(targets):
 
 
 # ---------------------------------------------------------------- quarentena
-def data_dir():
+APP_DIR = {"windows": "Dupin-Scan", "linux": "dupin-scan"}
+LEGACY_APP_DIR = {"windows": "Vigil", "linux": "vigil"}  # nome anterior do programa
+
+
+def _data_base():
     if platform.system() == "Windows":
-        base = Path(os.environ.get("LOCALAPPDATA", Path.home()))
-        return base / "Vigil"
-    return Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")) / "vigil"
+        return Path(os.environ.get("LOCALAPPDATA", Path.home())), "windows"
+    return Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")), "linux"
+
+
+def legacy_data_dir():
+    """Pasta de dados da época em que o programa se chamava Vigil (pode não existir mais)."""
+    base, key = _data_base()
+    return base / LEGACY_APP_DIR[key]
+
+
+def data_dir():
+    """Pasta de dados do usuário (quarentena, estado, hashes e regras baixados).
+
+    Se só existir a pasta antiga (Vigil), ela é RENOMEADA para a nova na primeira chamada, para a quarentena e o
+    histórico não ficarem órfãos. Se não for possível mover (arquivo em uso, sem permissão), a pasta antiga
+    continua sendo usada: nada se perde."""
+    base, key = _data_base()
+    new, legacy = base / APP_DIR[key], base / LEGACY_APP_DIR[key]
+    if not new.exists() and legacy.is_dir():
+        try:
+            os.replace(legacy, new)  # mesma pasta-pai: renomeia de uma vez, sem copiar
+        except OSError:
+            return legacy
+    return new
 
 
 def quarantine_path():

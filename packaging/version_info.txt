@@ -14,12 +14,12 @@ VSVersionInfo(
   kids=[
     StringFileInfo([
       StringTable('041604B0', [
-        StringStruct('CompanyName', 'Vigil'),
-        StringStruct('FileDescription', 'Vigil - triagem de ameaças'),
+        StringStruct('CompanyName', 'Dupin-Scan'),
+        StringStruct('FileDescription', 'Dupin-Scan - triagem de ameaças'),
         StringStruct('FileVersion', '1.0.0.0'),
-        StringStruct('InternalName', 'Vigil'),
-        StringStruct('OriginalFilename', 'Vigil.exe'),
-        StringStruct('ProductName', 'Vigil'),
+        StringStruct('InternalName', 'Dupin-Scan'),
+        StringStruct('OriginalFilename', 'Dupin-Scan.exe'),
+        StringStruct('ProductName', 'Dupin-Scan'),
         StringStruct('ProductVersion', '1.0.0.0'),
         StringStruct('Comments', 'Ferramenta de triagem: não substitui antivírus ou EDR.')
       ])

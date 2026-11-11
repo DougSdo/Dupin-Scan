@@ -4,7 +4,7 @@ from datetime import datetime
 
 import pytest
 
-from vigil import core, forensics, state
+from dupin_scan import core, forensics, state
 
 
 @pytest.fixture(autouse=True)

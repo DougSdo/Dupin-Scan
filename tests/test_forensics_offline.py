@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from vigil import forensics as fx
+from dupin_scan import forensics as fx
 
 WINDOWS = os.name == "nt"
 NOW = datetime(2026, 11, 11, 12, 0, 0)

@@ -1,4 +1,4 @@
-"""Vigil - artefatos forenses (sem dependência de interface).
+"""Dupin-Scan - artefatos forenses (sem dependência de interface).
 
 Lê o que o sistema já registrou e procura rastros de ataque, no mesmo formato de achado do restante do núcleo
 (`type == "artifact"`, com `source` e `when`):
@@ -7,7 +7,7 @@ Lê o que o sistema já registrou e procura rastros de ataque, no mesmo formato 
   Linux    auth.log / secure (inclusive rotacionados) e históricos de shell (bash, zsh, fish)
 
 As funções de análise são puras (recebem texto/eventos), para poderem ser testadas sem o sistema real.
-Limites conhecidos estão no README ("O que o Vigil não detecta").
+Limites conhecidos estão no README ("O que o Dupin-Scan não detecta").
 """
 import contextlib
 import gzip

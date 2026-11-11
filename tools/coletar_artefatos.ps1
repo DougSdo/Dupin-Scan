@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Coleta artefatos forenses do Windows para o Vigil analisar (comando "vigil analyze") ou para validar os parsers.
+  Coleta artefatos forenses do Windows para o Dupin-Scan analisar (comando "dupin-scan analyze") ou para validar os parsers.
 
 .DESCRIPTION
   Execute no PowerShell COMO ADMINISTRADOR. O script so LE o sistema e so ESCREVE na pasta de destino.
@@ -15,7 +15,7 @@
   Fica so no seu computador (nada e enviado a lugar nenhum). Apague a pasta quando terminar.
 
 .PARAMETER Destino
-  Pasta de saida. Deve NAO existir (o script nunca sobrescreve). Padrao: vigil_coleta na Area de Trabalho.
+  Pasta de saida. Deve NAO existir (o script nunca sobrescreve). Padrao: dupin_scan_coleta na Area de Trabalho.
 
 .PARAMETER Dias
   Janela dos logs de eventos (padrao 30).
@@ -24,7 +24,7 @@
   powershell -ExecutionPolicy Bypass -File .\coletar_artefatos.ps1
 #>
 param(
-    [string]$Destino = (Join-Path ([Environment]::GetFolderPath('Desktop')) 'vigil_coleta'),
+    [string]$Destino = (Join-Path ([Environment]::GetFolderPath('Desktop')) 'dupin_scan_coleta'),
     [int]$Dias = 30
 )
 $ErrorActionPreference = 'Continue'

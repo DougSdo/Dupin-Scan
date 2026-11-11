@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from vigil import core, forensics as fx
+from dupin_scan import core, forensics as fx
 
 LAB = Path(__file__).resolve().parent.parent / "lab" / "run_lab.py"
 _spec = importlib.util.spec_from_file_location("run_lab", LAB)

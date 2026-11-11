@@ -1,4 +1,4 @@
-"""Vigil - relatórios (JSON, HTML autocontido e CSV), sem dependência de interface.
+"""Dupin-Scan - relatórios (JSON, HTML autocontido e CSV), sem dependência de interface.
 
     report.write_report(rep, "saida.html")             # HTML (inclui a linha do tempo resumida)
     report.write_report(rep, "saida.json")             # relatório completo
@@ -239,8 +239,8 @@ def to_html(report, rows=None):
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
         '<meta name="color-scheme" content="light dark">'
         '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'">'
-        f"<title>Vigil · Relatório de triagem</title><style>{_CSS}</style></head><body><main>"
-        "<h1>Vigil · Relatório de triagem</h1>"
+        f"<title>Dupin-Scan · Relatório de triagem</title><style>{_CSS}</style></head><body><main>"
+        "<h1>Dupin-Scan · Relatório de triagem</h1>"
         '<p class="muted">Achados são indícios: confirme antes de agir. Falsos positivos são esperados.</p>'
         '<div class="card aviso"><strong>Triagem, não substitui antivírus/EDR.</strong> '
         "Um relatório sem achados não significa que o computador está limpo.</div>"
@@ -249,7 +249,7 @@ def to_html(report, rows=None):
         f"{_timeline_section(rows)}"
         f'{_path_list("Enviados para a quarentena", rep.get("quarantined"))}'
         f'{_path_list("Ignorados", rep.get("ignored"))}'
-        "<footer>Gerado pelo Vigil. Os textos acima vêm do computador analisado e foram escapados.</footer>"
+        "<footer>Gerado pelo Dupin-Scan. Os textos acima vêm do computador analisado e foram escapados.</footer>"
         "</main></body></html>\n")
 
 

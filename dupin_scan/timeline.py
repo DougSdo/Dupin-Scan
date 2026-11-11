@@ -1,4 +1,4 @@
-"""Vigil - linha do tempo e exportação CSV dos achados (sem dependência de interface).
+"""Dupin-Scan - linha do tempo e exportação CSV dos achados (sem dependência de interface).
 
 Tudo aqui é tolerante a dados faltando ou malformados: os achados vêm de arquivos, logs e comandos que um
 atacante pode controlar, então nenhuma função levanta exceção por causa do conteúdo de um achado.

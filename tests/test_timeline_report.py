@@ -7,8 +7,8 @@ from html.parser import HTMLParser
 
 import pytest
 
-from vigil import report as rp
-from vigil import timeline as tl
+from dupin_scan import report as rp
+from dupin_scan import timeline as tl
 
 XSS = "<script>alert(1)</script>"
 IMG = '"><img src=x onerror=alert(1)>'

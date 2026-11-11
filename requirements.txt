@@ -1,6 +1,6 @@
 PySide6>=6.6
 psutil>=5.9
-# Opcionais: sem eles o Vigil funciona, e avisa quando a função correspondente fica indisponível.
+# Opcionais: sem eles o Dupin-Scan funciona, e avisa quando a função correspondente fica indisponível.
 yara-python>=4.5     # regras YARA
 python-evtx>=0.8.1   # ler .evtx exportado (forense offline)
 regipy>=6.5.0        # ler Amcache.hve / SYSTEM exportados (forense offline)

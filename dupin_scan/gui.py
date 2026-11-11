@@ -1,4 +1,4 @@
-"""Vigil - interface gráfica (PySide6)."""
+"""Dupin-Scan - interface gráfica (PySide6)."""
 import json
 import os
 import sys
@@ -16,10 +16,28 @@ from PySide6.QtWidgets import (
 
 from . import attack, core, export_rules, forensics, intel, report, state
 
-APP_NAME = "Vigil"
+APP_NAME = "Dupin-Scan"
 APP_VERSION = "1.0.0"
 
 LEVEL_COLORS = {"ALTO": "#ef4444", "MÉDIO": "#f59e0b", "BAIXO": "#60a5fa"}
+
+def migrate_legacy_settings(new):
+    """Copia as configurações do tempo em que o programa se chamava Vigil, se ainda não há nenhuma nas novas.
+    Caminhos que apontavam para a pasta de dados antiga são reescritos para a nova. A chave antiga não é apagada.
+    Devolve quantas configurações foram copiadas."""
+    if new.allKeys():
+        return 0
+    old = QSettings("Vigil", "Vigil")
+    keys = old.allKeys()
+    legacy_root, new_root = str(core.legacy_data_dir()), str(core.data_dir())
+    for k in keys:
+        v = old.value(k)
+        if isinstance(v, str) and legacy_root and v.startswith(legacy_root):
+            v = new_root + v[len(legacy_root):]
+        new.setValue(k, v)
+    new.sync()
+    return len(keys)
+
 
 def asset(name):
     base = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
@@ -607,7 +625,7 @@ class ResultsPage(QWidget):
                       ("timeline", "Linha do tempo em CSV (*.timeline.csv)", ".timeline.csv"))
 
     def export(self):
-        name = f"vigil-relatorio-{datetime.now():%Y%m%d-%H%M}"
+        name = f"dupin-scan-relatorio-{datetime.now():%Y%m%d-%H%M}"
         path, flt = QFileDialog.getSaveFileName(self, "Exportar relatório", name,
                                                 ";;".join(f[1] for f in self.EXPORT_FORMATS))
         if not path:
@@ -774,7 +792,7 @@ class SettingsPage(QWidget):
         lay.addWidget(c2)
 
         ci, li = card("Inteligência de ameaças (opcional, usa a internet)")
-        d = QLabel("O Vigil funciona 100% offline. Estes botões só acessam a rede quando você clica e confirma. "
+        d = QLabel("O Dupin-Scan funciona 100% offline. Estes botões só acessam a rede quando você clica e confirma. "
                    "As chaves ficam salvas neste computador, sem criptografia (ou use as variáveis ABUSECH_AUTH_KEY e VT_API_KEY).")
         d.setObjectName("muted")
         d.setWordWrap(True)
@@ -811,7 +829,7 @@ class SettingsPage(QWidget):
         self.refresh_ignored()
 
         c4, l4 = card("Exportar regras de detecção")
-        d = QLabel("Gera as detecções do Vigil como regras Sigma (YAML) e YARA, com a técnica MITRE ATT&CK de cada uma.")
+        d = QLabel("Gera as detecções do Dupin-Scan como regras Sigma (YAML) e YARA, com a técnica MITRE ATT&CK de cada uma.")
         d.setObjectName("muted")
         d.setWordWrap(True)
         l4.addWidget(d)
@@ -911,11 +929,11 @@ class SettingsPage(QWidget):
         if not d:
             return
         try:
-            files = export_rules.write_all(Path(d) / "vigil-rules")
+            files = export_rules.write_all(Path(d) / "dupin-scan-rules")
         except OSError as e:
             QMessageBox.warning(self, APP_NAME, f"Não foi possível gravar as regras:\n{e}")
             return
-        QMessageBox.information(self, APP_NAME, f"{len(files)} arquivos gravados em:\n{Path(d) / 'vigil-rules'}")
+        QMessageBox.information(self, APP_NAME, f"{len(files)} arquivos gravados em:\n{Path(d) / 'dupin-scan-rules'}")
 
     @staticmethod
     def is_admin():
@@ -956,7 +974,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle(APP_NAME)
         self.resize(1120, 760)
-        self.settings = QSettings("Vigil", "Vigil")
+        self.settings = QSettings("Dupin-Scan", "Dupin-Scan")
+        migrate_legacy_settings(self.settings)
 
         root = QWidget()
         root.setObjectName("root")
@@ -1055,8 +1074,8 @@ def main(argv=None):
     app = QApplication.instance() or QApplication(sys.argv[:1])
     app.setApplicationName(APP_NAME)
     app.setStyleSheet(QSS.replace("@CHECK@", asset("check.png")))
-    if Path(asset("vigil.png")).exists():
-        app.setWindowIcon(QIcon(asset("vigil.png")))
+    if Path(asset("dupin-scan.png")).exists():
+        app.setWindowIcon(QIcon(asset("dupin-scan.png")))
     w = MainWindow()
     w.open_paths(argv)
     w.show()

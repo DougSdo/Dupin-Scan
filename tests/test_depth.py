@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from vigil import core, persist, trust
+from dupin_scan import core, persist, trust
 
 
 @pytest.fixture(autouse=True)

@@ -1,8 +1,8 @@
 """Ponto de entrada único: subcomandos vão para a CLI; o resto abre a interface gráfica.
 
-    vigil                      abre a interface
-    vigil arquivo1 pasta2      abre a interface já com esses alvos (menu "Abrir com" / "Varrer com o Vigil")
-    vigil scan --out r.json    linha de comando (ver `vigil scan --help`)
+    dupin-scan                      abre a interface
+    dupin-scan arquivo1 pasta2      abre a interface já com esses alvos (menu "Abrir com" / "Varrer com o Dupin-Scan")
+    dupin-scan scan --out r.json    linha de comando (ver `dupin-scan scan --help`)
 
 A interface (PySide6) só é importada quando necessária, para a CLI funcionar em servidores sem ambiente gráfico.
 """

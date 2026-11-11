@@ -1,4 +1,4 @@
-"""Catálogo MITRE ATT&CK das técnicas que o Vigil reconhece.
+"""Catálogo MITRE ATT&CK das técnicas que o Dupin-Scan reconhece.
 
 Nomes e táticas conferidos em attack.mitre.org (Enterprise) em 2026-11-11. O ATT&CK muda entre versões
 (ex.: a tática "Defense Evasion" passou a se chamar "Stealth"): revise ao atualizar o catálogo.

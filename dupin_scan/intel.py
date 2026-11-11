@@ -1,6 +1,6 @@
-"""Vigil - inteligência de ameaças (sem dependência de interface). TUDO AQUI É OPT-IN.
+"""Dupin-Scan - inteligência de ameaças (sem dependência de interface). TUDO AQUI É OPT-IN.
 
-O Vigil funciona 100% offline. Este módulo só toca a rede quando o usuário pede explicitamente:
+O Dupin-Scan funciona 100% offline. Este módulo só toca a rede quando o usuário pede explicitamente:
 
   update_hashes()  baixa uma lista pública de SHA-256 de malware (padrão: MalwareBazaar, que exige Auth-Key gratuita)
   update_yara()    baixa e VALIDA um pacote público de regras YARA (padrão: Neo23x0/signature-base)
@@ -8,7 +8,7 @@ O Vigil funciona 100% offline. Este módulo só toca a rede quando o usuário pe
 
 Garantias:
   - só HTTPS (inclusive em redirecionamentos); timeout e tetos de tamanho em tudo que é baixado;
-  - nada que identifique o usuário/máquina vai na requisição (User-Agent genérico "Vigil");
+  - nada que identifique o usuário/máquina vai na requisição (User-Agent genérico "Dupin-Scan");
   - chaves de API nunca aparecem em mensagens de erro, arquivos gravados nem metadados;
   - tudo é gravado só em intel_dir() e de forma atômica: uma atualização que falha preserva o que já existia;
   - todo acesso à rede passa por `_open`, para os testes o substituírem.
@@ -16,7 +16,7 @@ Garantias:
 Verificado em 2026-11-11 (leituras limitadas a 4 KB): o antigo https://bazaar.abuse.ch/export/txt/sha256/recent/
 devolve 410 Gone; a MalwareBazaar agora exige Auth-Key e documenta
 https://mb-api.abuse.ch/v2/files/exports/<AUTH-KEY>/recent.csv. O formato exato do CSV fica atrás de login e
-NÃO foi verificado: o Vigil extrai qualquer token de 64 hex por linha (ignora linhas com '#'), como core.load_hashes.
+NÃO foi verificado: o Dupin-Scan extrai qualquer token de 64 hex por linha (ignora linhas com '#'), como core.load_hashes.
 """
 import io
 import json
@@ -42,7 +42,7 @@ DEFAULT_HASH_URL = "https://mb-api.abuse.ch/v2/files/exports/{auth_key}/recent.c
 DEFAULT_YARA_URL = "https://github.com/Neo23x0/signature-base/archive/refs/heads/master.zip"
 VT_URL = "https://www.virustotal.com/api/v3/files/{sha256}"
 VT_GUI = "https://www.virustotal.com/gui/file/{sha256}"
-USER_AGENT = "Vigil"
+USER_AGENT = "Dupin-Scan"
 TIMEOUT = 30
 CHUNK = 64 * 1024
 
@@ -247,7 +247,7 @@ def update_hashes(url=DEFAULT_HASH_URL, auth_key=None, dest=None):
     base = Path(dest) if dest is not None else intel_dir()
     date = _now()
     path = base / "hashes.txt"
-    body = f"# Vigil: {len(hashes)} hashes importados de {source} em {date}\n" + "\n".join(sorted(hashes)) + "\n"
+    body = f"# Dupin-Scan: {len(hashes)} hashes importados de {source} em {date}\n" + "\n".join(sorted(hashes)) + "\n"
     _atomic_write(path, body)
     _write_meta(base, "hashes", {"date": date, "source": source, "url": _redact(url, secrets), "count": len(hashes)})
     return {"count": len(hashes), "path": str(path), "source": source, "date": date}

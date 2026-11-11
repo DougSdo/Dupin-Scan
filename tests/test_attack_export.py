@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from vigil import attack, core, export_rules
+from dupin_scan import attack, core, export_rules
 
 ROOT = Path(__file__).resolve().parent.parent
 yaml = pytest.importorskip("yaml")
@@ -99,7 +99,7 @@ def test_sigma_tags_attack_validas(sigma):
 
 def test_sigma_regexes_compilam_e_casam_com_exemplos(sigma):
     por_titulo = {d["title"]: d for _, d in sigma}
-    ps = por_titulo["Vigil - PowerShell codificado/oculto"]["detection"]["selection"]["CommandLine|re|i"]
+    ps = por_titulo["Dupin-Scan - PowerShell codificado/oculto"]["detection"]["selection"]["CommandLine|re|i"]
     assert re.search(ps, "PowerShell.exe -ENC AAAA", re.I)
     assert not re.search(ps, "powershell.exe -File ok.ps1", re.I)
     for _, d in sigma:
@@ -124,40 +124,40 @@ def test_sigma_ids_estaveis_entre_exportacoes():
 # ------------------------------------------------------------ YARA
 @pytest.mark.skipif(core.yara is None, reason="yara-python não instalado")
 def test_yara_exportada_compila_e_detecta(tmp_path):
-    f = tmp_path / "vigil.yar"
+    f = tmp_path / "dupin-scan.yar"
     f.write_text(export_rules.yara_text(), encoding="utf-8")
     rules = core.yara.compile(filepath=str(f), externals=core.YARA_EXTERNALS)
 
     def nomes(data, filename):
         return {m.rule for m in rules.match(data=data, externals={"filename": filename, "filepath": filename})}
 
-    assert "vigil_executavel_disfarcado_de_documento" in nomes(b"MZ" + b"\0" * 64, "fatura.pdf")
-    assert "vigil_executavel_disfarcado_de_documento" not in nomes(b"MZ" + b"\0" * 64, "programa.exe")
-    assert "vigil_dupla_extensao_suspeita" in nomes(b"x", "foto.png.exe")
-    assert "vigil_dupla_extensao_suspeita" not in nomes(b"x", "foto.png")
-    assert "vigil_cmd_powershell_codificado_oculto" in nomes(b"powershell -w hidden -enc AAAA", "a.ps1")
+    assert "dupin_scan_executavel_disfarcado_de_documento" in nomes(b"MZ" + b"\0" * 64, "fatura.pdf")
+    assert "dupin_scan_executavel_disfarcado_de_documento" not in nomes(b"MZ" + b"\0" * 64, "programa.exe")
+    assert "dupin_scan_dupla_extensao_suspeita" in nomes(b"x", "foto.png.exe")
+    assert "dupin_scan_dupla_extensao_suspeita" not in nomes(b"x", "foto.png")
+    assert "dupin_scan_cmd_powershell_codificado_oculto" in nomes(b"powershell -w hidden -enc AAAA", "a.ps1")
     assert not nomes(b"echo ola", "a.sh")
 
 
 @pytest.mark.skipif(core.yara is None, reason="yara-python não instalado")
 def test_yara_entropia_alta_so_em_binario(tmp_path):
     import os
-    f = tmp_path / "vigil.yar"
+    f = tmp_path / "dupin-scan.yar"
     f.write_text(export_rules.yara_text(), encoding="utf-8")
     rules = core.yara.compile(filepath=str(f), externals=core.YARA_EXTERNALS)
     ext = {"filename": "x.bin", "filepath": "x.bin"}
-    assert "vigil_binario_alta_entropia" in {m.rule for m in rules.match(data=b"MZ" + os.urandom(4096), externals=ext)}
-    assert "vigil_binario_alta_entropia" not in {m.rule for m in rules.match(data=os.urandom(4096), externals=ext)}
+    assert "dupin_scan_binario_alta_entropia" in {m.rule for m in rules.match(data=b"MZ" + os.urandom(4096), externals=ext)}
+    assert "dupin_scan_binario_alta_entropia" not in {m.rule for m in rules.match(data=os.urandom(4096), externals=ext)}
 
 
 # ------------------------------------------------------------ saída em disco
 def test_write_all_cria_arquivos(tmp_path):
     files = export_rules.write_all(tmp_path)
-    assert (tmp_path / "vigil.yar").exists()
+    assert (tmp_path / "dupin-scan.yar").exists()
     assert list((tmp_path / "sigma").glob("*.yml"))
     assert len(files) == len(export_rules.sigma_rules()) + 1
 
 
 def test_write_all_so_sigma(tmp_path):
     export_rules.write_all(tmp_path, "sigma")
-    assert not (tmp_path / "vigil.yar").exists()
+    assert not (tmp_path / "dupin-scan.yar").exists()

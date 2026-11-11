@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from vigil import core, trust
+from dupin_scan import core, trust
 
 
 @pytest.fixture(autouse=True)
@@ -76,7 +76,7 @@ def test_o_caminho_vai_por_variavel_de_ambiente_e_nao_no_comando(monkeypatch):
     monkeypatch.setattr(trust.subprocess, "run", spy)
     nome = "C:\\a'; Remove-Item x #\\b.exe"  # aspas e ; num nome não podem virar código
     trust.windows_signature(nome)
-    assert visto["env"]["VIGIL_TRUST_PATH"] == nome and nome not in " ".join(visto["cmd"])
+    assert visto["env"]["DUPIN_SCAN_TRUST_PATH"] == nome and nome not in " ".join(visto["cmd"])
 
 
 @pytest.mark.skipif(os.name != "nt", reason="Authenticode só no Windows")

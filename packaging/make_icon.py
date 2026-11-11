@@ -1,4 +1,4 @@
-"""Gera assets/vigil.png e assets/vigil.ico (requer PySide6 e Pillow)."""
+"""Gera assets/dupin-scan.png e assets/dupin-scan.ico (requer PySide6 e Pillow)."""
 import os
 import sys
 from pathlib import Path
@@ -41,10 +41,10 @@ p.end()
 
 out = Path(__file__).resolve().parent.parent / "assets"
 out.mkdir(exist_ok=True)
-img.save(str(out / "vigil.png"))
+img.save(str(out / "dupin-scan.png"))
 try:
     from PIL import Image
-    Image.open(out / "vigil.png").save(out / "vigil.ico", sizes=[(256, 256), (128, 128), (64, 64), (48, 48), (32, 32), (16, 16)])
+    Image.open(out / "dupin-scan.png").save(out / "dupin-scan.ico", sizes=[(256, 256), (128, 128), (64, 64), (48, 48), (32, 32), (16, 16)])
 except ImportError:
     print("Pillow ausente: .ico não gerado")
 # marca de seleção para checkboxes

@@ -1,5 +1,5 @@
 @echo off
-REM Executa o Vigil direto do codigo, sem instalar nada no sistema (usa uma venv local).
+REM Executa o Dupin-Scan direto do codigo, sem instalar nada no sistema (usa uma venv local).
 setlocal
 cd /d "%~dp0"
 if not exist .venv\Scripts\python.exe (
@@ -8,4 +8,4 @@ if not exist .venv\Scripts\python.exe (
   .venv\Scripts\python -m pip install PySide6 psutil
   .venv\Scripts\python -m pip install yara-python || echo [aviso] seguindo sem YARA
 )
-start "" .venv\Scripts\pythonw.exe run_vigil.py
+start "" .venv\Scripts\pythonw.exe run_dupin_scan.py

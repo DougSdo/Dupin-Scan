@@ -1,16 +1,16 @@
-"""Testes do núcleo do Vigil (sem interface)."""
+"""Testes do núcleo do Dupin-Scan (sem interface)."""
 import hashlib
 import os
 
 import pytest
 
-from vigil import core
+from dupin_scan import core
 
 
 @pytest.fixture
 def qhome(tmp_path, monkeypatch):
     """Isola a pasta de dados (quarentena) em um diretório temporário."""
-    d = tmp_path / "vigil_data"
+    d = tmp_path / "dupin_scan_data"
     monkeypatch.setattr(core, "data_dir", lambda: d)
     return d
 

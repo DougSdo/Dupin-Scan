@@ -1,12 +1,12 @@
-"""Vigil - linha de comando (sem interface gráfica, própria para agendar e automatizar).
+"""Dupin-Scan - linha de comando (sem interface gráfica, própria para agendar e automatizar).
 
-    python -m vigil scan --out relatorio.json --fail-on ALTO
-    python -m vigil scan --modules files,forensics --targets C:\\Users\\eu\\Downloads --out rel.html
-    python -m vigil analyze Security.evtx auth.log.1.gz --out artefatos.html
-    python -m vigil timeline relatorio.json --out linha-do-tempo.csv
-    python -m vigil export-rules --out regras
-    python -m vigil ignored list | remove CHAVE | add CHAVE --report relatorio.json
-    python -m vigil intel status | update-hashes | update-yara | vt SHA256
+    python -m dupin_scan scan --out relatorio.json --fail-on ALTO
+    python -m dupin_scan scan --modules files,forensics --targets C:\\Users\\eu\\Downloads --out rel.html
+    python -m dupin_scan analyze Security.evtx auth.log.1.gz --out artefatos.html
+    python -m dupin_scan timeline relatorio.json --out linha-do-tempo.csv
+    python -m dupin_scan export-rules --out regras
+    python -m dupin_scan ignored list | remove CHAVE | add CHAVE --report relatorio.json
+    python -m dupin_scan intel status | update-hashes | update-yara | vt SHA256
 
 Códigos de saída: 0 sem achados no limite pedido, 1 erro, 2 há achados em --fail-on ou acima.
 Chaves de API só por variável de ambiente (ABUSECH_AUTH_KEY, VT_API_KEY): argumentos aparecem na lista de processos.
@@ -28,7 +28,7 @@ _RANK = {"BAIXO": 1, "MÉDIO": 2, "ALTO": 3}
 
 
 def _err(msg):
-    print(f"vigil: {msg}", file=sys.stderr)
+    print(f"dupin-scan: {msg}", file=sys.stderr)
     return 1
 
 
@@ -53,7 +53,7 @@ def summarize(rep, limit=25, out=None):
         extra.append(f"{rep['new']} novos")
     if rep.get("ignored"):
         extra.append(f"{len(rep['ignored'])} ignorados")
-    print(f"Vigil: {len(f)} achados ({n['ALTO']} alto, {n['MÉDIO']} médio, {n['BAIXO']} baixo)"
+    print(f"Dupin-Scan: {len(f)} achados ({n['ALTO']} alto, {n['MÉDIO']} médio, {n['BAIXO']} baixo)"
           + (" · " + ", ".join(extra) if extra else "") + f" · {rep.get('files_scanned', 0)} arquivos varridos", file=out)
     for x in f[:limit]:
         ids = ",".join(t["id"] for t in x.get("attack", []))
@@ -217,7 +217,7 @@ def cmd_intel(a):
 
 # ---------------------------------------------------------------- argumentos
 def build_parser():
-    ap = argparse.ArgumentParser(prog="vigil", description="Vigil: triagem de ameaças (modo linha de comando).")
+    ap = argparse.ArgumentParser(prog="dupin-scan", description="Dupin-Scan: triagem de ameaças (modo linha de comando).")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     s = sub.add_parser("scan", help="varredura do computador")
@@ -251,7 +251,7 @@ def build_parser():
     s.set_defaults(fn=cmd_timeline)
 
     s = sub.add_parser("export-rules", help="exporta as detecções como regras Sigma/YARA")
-    s.add_argument("--out", default="vigil-rules")
+    s.add_argument("--out", default="dupin-scan-rules")
     s.add_argument("--format", choices=("all", "sigma", "yara"), default="all")
     s.set_defaults(fn=cmd_export_rules)
 

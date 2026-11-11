@@ -1,4 +1,4 @@
-"""Vigil - estado entre varreduras: achados ignorados e histórico do que já foi visto (baseline).
+"""Dupin-Scan - estado entre varreduras: achados ignorados e histórico do que já foi visto (baseline).
 
 Tudo fica em `<pasta de dados>/state.json`, gravado de forma atômica:
 

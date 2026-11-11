@@ -1,6 +1,6 @@
 import sys
 
-from vigil.launcher import main
+from dupin_scan.launcher import main
 
 if __name__ == "__main__":
     sys.exit(main())

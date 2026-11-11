@@ -5,7 +5,7 @@ import sys
 
 import pytest
 
-from vigil import cli, core, forensics, intel, launcher, state
+from dupin_scan import cli, core, forensics, intel, launcher, state
 
 
 @pytest.fixture(autouse=True)
@@ -164,7 +164,7 @@ def test_timeline_relatorio_invalido(tmp_path, capsys):
 
 def test_export_rules(tmp_path, capsys):
     assert cli.main(["export-rules", "--out", str(tmp_path / "regras"), "--format", "sigma"]) == 0
-    assert list((tmp_path / "regras" / "sigma").glob("*.yml")) and not (tmp_path / "regras" / "vigil.yar").exists()
+    assert list((tmp_path / "regras" / "sigma").glob("*.yml")) and not (tmp_path / "regras" / "dupin-scan.yar").exists()
 
 
 def test_ignorar_listar_remover(tmp_path, capsys):
@@ -254,7 +254,7 @@ def test_launcher_ajuda_vai_para_a_cli(monkeypatch):
 
 def test_launcher_caminhos_abrem_a_interface(monkeypatch):
     pytest.importorskip("PySide6")
-    from vigil import gui
+    from dupin_scan import gui
     visto = []
     monkeypatch.setattr(gui, "main", lambda a: visto.append(a) or 0)
     assert launcher.main(["C:\\pasta", "arquivo.exe"]) == 0 and visto == [["C:\\pasta", "arquivo.exe"]]
@@ -264,7 +264,7 @@ def test_launcher_caminhos_abrem_a_interface(monkeypatch):
 def test_cli_nao_importa_a_interface_grafica():
     import subprocess
     import sys
-    code = ("import sys; from vigil import launcher, cli; cli.main(['export-rules','--out','_x','--format','sigma']) if False else None;"
+    code = ("import sys; from dupin_scan import launcher, cli; cli.main(['export-rules','--out','_x','--format','sigma']) if False else None;"
             "print('PySide6' in sys.modules)")
     r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
     assert r.stdout.strip() == "False"  # a CLI precisa funcionar em servidor sem ambiente gráfico
